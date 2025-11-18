@@ -56,6 +56,24 @@ Balanced ternary uses three digits: **-1**, **0**, and **+1** (often written as 
 - **Data Augmentation**: Random crop, flip, rotation support
 - **Top-1 & Top-5 Metrics**: Comprehensive evaluation tools
 
+#### Transformers & Language Models (GPT)
+- **TernaryGPT**: Decoder-only transformer with ternary weights
+- **Multi-Head Attention**: Ternary query, key, value projections
+- **Text Generation**: Temperature, top-k, top-p sampling
+- **Character & Word Tokenization**: Flexible tokenization options
+- **GPT-Small**: 117M parameters in 32 MB (ternary) vs 468 MB (float32)
+- **Shakespeare Training**: Character-level language modeling
+- **Autoregressive Generation**: Causal masking for coherent text
+
+#### Multimodal Agents (Vision + Language)
+- **TernaryMultimodal**: Combined vision-language agent
+- **Vision Encoder**: TernaryResNet for image understanding
+- **Language Decoder**: TernaryGPT for text generation
+- **Image Captioning**: Generate descriptions from images
+- **Visual Question Answering (VQA)**: Answer questions about images
+- **Cross-Modal Attention**: Unified transformer processing
+- **Full Ternary Stack**: Both vision and language use ternary weights
+
 ### Encoding Frameworks
 
 - **Compact Encoder**: 3 bits → 2 trits (94.6% efficient, minimal loss)
@@ -205,6 +223,34 @@ metrics = trainer.train()
 print(f"Best accuracy: {metrics.get_best_val_acc() * 100:.2f}%")
 ```
 
+### Ternary GPT & Multimodal
+
+```python
+from ternary.ternary_gpt import create_ternary_gpt_tiny
+from ternary.ternary_multimodal import create_ternary_multimodal_tiny
+from ternary.gpt_data import CharTokenizer
+import numpy as np
+
+# Create GPT model
+model = create_ternary_gpt_tiny(vocab_size=128)
+
+# Create tokenizer
+alphabet = 'abcdefghijklmnopqrstuvwxyz .,'
+tokenizer = CharTokenizer()
+tokenizer.fit(alphabet)
+
+# Generate text
+prompt = "the "
+prompt_ids = np.array([tokenizer.encode(prompt)])
+generated = model.generate(prompt_ids, max_new_tokens=50, temperature=0.8)
+text = tokenizer.decode(generated[0].tolist())
+
+# Multimodal agent
+agent = create_ternary_multimodal_tiny()
+image = np.random.rand(3, 224, 224).astype(np.float32)
+caption_ids = agent.caption_image(image, max_length=50)
+```
+
 ### More Examples
 
 See the `examples/` directory for complete examples:
@@ -219,6 +265,11 @@ See the `examples/` directory for complete examples:
 - `train_imagenet_cnn.py` - Train TernaryResNet-34 on ImageNet
 - `evaluate_cnn.py` - Evaluate trained CNN models
 - `cnn_inference_demo.py` - Simple CNN inference demonstration
+
+**Transformers & Language Models:**
+- `train_gpt.py` - Train Ternary GPT on text data
+- `text_generation_demo.py` - Text generation with different sampling strategies
+- `multimodal_demo.py` - Vision-language multimodal agent demonstration
 
 ## Architecture
 
@@ -244,7 +295,11 @@ trit-computing-machine/
 │       ├── cnn_layers.py  # CNN layers (Conv2D, BatchNorm, Pooling)
 │       ├── cnn_models.py  # CNN architectures (ResNet, VGG)
 │       ├── cnn_data.py    # Data loaders (CIFAR, ImageNet)
-│       └── cnn_trainer.py # Training pipeline
+│       ├── cnn_trainer.py # Training pipeline
+│       ├── ternary_transformer.py  # Transformer components
+│       ├── ternary_gpt.py # GPT language models
+│       ├── ternary_multimodal.py  # Multimodal agents
+│       └── gpt_data.py    # Text data loaders & tokenization
 ├── examples/              # Example programs
 │   ├── basic_operations.py
 │   ├── setun_simulation.py
@@ -252,12 +307,16 @@ trit-computing-machine/
 │   ├── train_cifar10_cnn.py
 │   ├── train_imagenet_cnn.py
 │   ├── evaluate_cnn.py
-│   └── cnn_inference_demo.py
+│   ├── cnn_inference_demo.py
+│   ├── train_gpt.py
+│   ├── text_generation_demo.py
+│   └── multimodal_demo.py
 ├── tests/                 # Tests (C++ and Python)
 ├── docs/                  # Documentation
 │   ├── IDEAS.md          # Applications and research directions
 │   ├── NEURAL_NETWORKS.md # Neural network theory
 │   ├── CNN_IMPLEMENTATION.md # CNN documentation
+│   ├── GPT_IMPLEMENTATION.md # GPT & multimodal documentation
 │   └── web-sandbox/      # Interactive web sandbox
 └── checkpoints/           # Saved model checkpoints (generated)
 ```
