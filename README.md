@@ -39,11 +39,22 @@ Balanced ternary uses three digits: **-1**, **0**, and **+1** (often written as 
 
 ### Neural Networks
 
+#### Fully Connected Networks
 - **Ternary Neural Networks**: Weights quantized to {-1, 0, +1}
 - **Straight-Through Estimator**: Proper gradient flow for training
 - **MNIST Classification**: Complete example with 96-98% accuracy
 - **120x Compression**: Massive model size reduction vs float32
 - **Sparsity**: 30-50% zero weights for additional speedup
+
+#### Convolutional Neural Networks (CNNs)
+- **TernaryResNet**: ResNet-18, 34, 50 architectures for image classification
+- **TernaryVGG**: VGG-11, 16, 19 architectures
+- **CIFAR-10/100**: 90-93% accuracy with ternary weights
+- **ImageNet**: 68-71% Top-1 accuracy on 1000-class classification
+- **14.8x Compression**: Compared to float32 CNNs
+- **Im2col Optimization**: Efficient convolution implementation
+- **Data Augmentation**: Random crop, flip, rotation support
+- **Top-1 & Top-5 Metrics**: Comprehensive evaluation tools
 
 ### Encoding Frameworks
 
@@ -163,11 +174,51 @@ print(f"Result: {computer.get_memory_value(102)}")  # 30
 print(f"Cycles executed: {result['cycles_executed']}")
 ```
 
+### Ternary CNNs
+
+```python
+from ternary.cnn_models import create_ternary_resnet18
+from ternary.cnn_data import CIFAR10Loader, DataAugmentation
+from ternary.cnn_trainer import TernaryCNNTrainer, TrainingConfig
+
+# Load CIFAR-10
+loader = CIFAR10Loader(data_dir='./data/cifar10')
+loader.load()
+
+# Create TernaryResNet-18
+model = create_ternary_resnet18(num_classes=10)
+
+# Configure training
+config = TrainingConfig(
+    epochs=100,
+    batch_size=128,
+    learning_rate=0.1,
+    lr_schedule='step',
+    lr_decay_epochs=[30, 60, 90]
+)
+
+# Train
+trainer = TernaryCNNTrainer(model, loader, loader, config)
+metrics = trainer.train()
+
+# Evaluate
+print(f"Best accuracy: {metrics.get_best_val_acc() * 100:.2f}%")
+```
+
 ### More Examples
 
 See the `examples/` directory for complete examples:
+
+**Basic Computing:**
 - `basic_operations.py` - Fundamental trit and tryte operations
 - `setun_simulation.py` - Complete Setun computer simulation with multiple programs
+
+**Neural Networks:**
+- `mnist_ternary.py` - Train ternary neural network on MNIST
+- `train_cifar10_cnn.py` - Train TernaryResNet-18 on CIFAR-10
+- `train_imagenet_cnn.py` - Train TernaryResNet-34 on ImageNet
+- `evaluate_cnn.py` - Evaluate trained CNN models
+- `cnn_inference_demo.py` - Simple CNN inference demonstration
 
 ## Architecture
 
@@ -186,11 +237,29 @@ trit-computing-machine/
 ├── python/
 │   └── ternary/           # Python package
 │       ├── __init__.py
-│       └── highlevel.py   # High-level Python API
+│       ├── highlevel.py   # High-level Python API
+│       ├── neural.py      # Fully connected neural networks
+│       ├── encoding.py    # Encoding frameworks
+│       ├── lossless_encoding.py  # Lossless encoders
+│       ├── cnn_layers.py  # CNN layers (Conv2D, BatchNorm, Pooling)
+│       ├── cnn_models.py  # CNN architectures (ResNet, VGG)
+│       ├── cnn_data.py    # Data loaders (CIFAR, ImageNet)
+│       └── cnn_trainer.py # Training pipeline
 ├── examples/              # Example programs
+│   ├── basic_operations.py
+│   ├── setun_simulation.py
+│   ├── mnist_ternary.py
+│   ├── train_cifar10_cnn.py
+│   ├── train_imagenet_cnn.py
+│   ├── evaluate_cnn.py
+│   └── cnn_inference_demo.py
 ├── tests/                 # Tests (C++ and Python)
-└── docs/                  # Documentation
-    └── IDEAS.md          # Applications and research directions
+├── docs/                  # Documentation
+│   ├── IDEAS.md          # Applications and research directions
+│   ├── NEURAL_NETWORKS.md # Neural network theory
+│   ├── CNN_IMPLEMENTATION.md # CNN documentation
+│   └── web-sandbox/      # Interactive web sandbox
+└── checkpoints/           # Saved model checkpoints (generated)
 ```
 
 ## Instruction Set
