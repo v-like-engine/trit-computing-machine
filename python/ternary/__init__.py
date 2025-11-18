@@ -9,6 +9,8 @@ This library provides:
 - Ternary logic operations
 - Memory simulation
 - Basic processor simulation
+- Ternary neural networks
+- Efficient 3-bit to 2-trit encoding
 - High-performance C++ core with Python bindings
 """
 
@@ -34,7 +36,41 @@ from .highlevel import (
     balanced_ternary_to_int,
 )
 
-__version__ = "0.1.0"
+# Neural network components
+try:
+    from .neural import (
+        TernaryNeuralNetwork,
+        TernaryLinear,
+        TernaryActivation,
+        TernaryConfig,
+        ternary_quantize,
+        train_step,
+        evaluate,
+    )
+    _has_neural = True
+except ImportError:
+    _has_neural = False
+
+# Encoding components
+try:
+    from .encoding import (
+        TritEncoder,
+        TryteEncoder,
+    )
+    _has_encoding = True
+except ImportError:
+    _has_encoding = False
+
+# TAL compiler
+try:
+    from .tal import (
+        TALCompiler,
+    )
+    _has_tal = True
+except ImportError:
+    _has_tal = False
+
+__version__ = "0.2.0"
 __author__ = "Ternary Computing Research"
 
 __all__ = [
@@ -51,3 +87,26 @@ __all__ = [
     "int_to_balanced_ternary",
     "balanced_ternary_to_int",
 ]
+
+# Add optional components if available
+if _has_neural:
+    __all__.extend([
+        "TernaryNeuralNetwork",
+        "TernaryLinear",
+        "TernaryActivation",
+        "TernaryConfig",
+        "ternary_quantize",
+        "train_step",
+        "evaluate",
+    ])
+
+if _has_encoding:
+    __all__.extend([
+        "TritEncoder",
+        "TryteEncoder",
+    ])
+
+if _has_tal:
+    __all__.extend([
+        "TALCompiler",
+    ])
