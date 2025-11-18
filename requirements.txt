@@ -1,0 +1,23 @@
+# Core requirements
+numpy>=1.19.0
+
+# Build requirements
+cmake>=3.12
+pybind11>=2.10.0
+
+# Development requirements
+pytest>=6.0
+pytest-cov>=2.10
+black>=22.0
+mypy>=0.950
+
+# Optional: Protobuf support
+protobuf>=3.19.0
+grpcio>=1.40.0
+grpcio-tools>=1.40.0
+
+# Optional: Visualization
+matplotlib>=3.3.0
+
+# Optional: Performance profiling
+py-spy>=0.3.0

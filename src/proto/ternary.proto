@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package ternary;
+
+// Trit value enumeration
+enum TritValue {
+    TRIT_MINUS = 0;
+    TRIT_ZERO = 1;
+    TRIT_PLUS = 2;
+}
+
+// Single trit message
+message Trit {
+    TritValue value = 1;
+}
+
+// Tryte (18-trit word)
+message Tryte {
+    // Store as int64 for efficiency
+    int64 value = 1;
+
+    // Optional: store as trit array for precision
+    repeated TritValue trits = 2;
+}
+
+// Memory block
+message MemoryBlock {
+    uint64 start_address = 1;
+    repeated Tryte data = 2;
+}
+
+// Processor state
+message ProcessorState {
+    Tryte accumulator = 1;
+    Tryte index_register = 2;
+    uint64 program_counter = 3;
+    uint64 cycle_count = 4;
+    bool halted = 5;
+}
+
+// Instruction
+message Instruction {
+    enum Opcode {
+        NOP = 0;
+        LOAD = 1;
+        STORE = 2;
+        ADD = 3;
+        SUB = 4;
+        MUL = 5;
+        NEG = 6;
+        AND = 7;
+        OR = 8;
+        NOT = 9;
+        XOR = 10;
+        SHIFT_L = 11;
+        SHIFT_R = 12;
+        JUMP = 13;
+        JUMP_POS = 14;
+        JUMP_ZERO = 15;
+        JUMP_NEG = 16;
+        HALT = 17;
+    }
+
+    Opcode opcode = 1;
+    uint64 address = 2;
+}
+
+// Program
+message Program {
+    repeated Instruction instructions = 1;
+    MemoryBlock initial_data = 2;
+}
+
+// Execution request
+message ExecuteRequest {
+    Program program = 1;
+    uint64 max_cycles = 2;
+}
+
+// Execution response
+message ExecuteResponse {
+    ProcessorState final_state = 1;
+    MemoryBlock memory_dump = 2;
+    bool success = 3;
+    string error_message = 4;
+}
+
+// Service for distributed ternary computing
+service TernaryComputeService {
+    // Execute a program
+    rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+
+    // Step through execution
+    rpc Step(ProcessorState) returns (ProcessorState);
+
+    // Read memory
+    rpc ReadMemory(MemoryBlock) returns (MemoryBlock);
+
+    // Write memory
+    rpc WriteMemory(MemoryBlock) returns (ExecuteResponse);
+}
+
+// Ternary data analytics messages
+message TernaryVector {
+    repeated Tryte elements = 1;
+}
+
+message TernaryMatrix {
+    uint32 rows = 1;
+    uint32 cols = 2;
+    repeated Tryte elements = 3;
+}
+
+// Ternary neural network node
+message TernaryNeuron {
+    TernaryVector weights = 1;
+    Tryte bias = 2;
+    string activation = 3;  // "balanced", "saturating", etc.
+}
+
+// Ternary computation task
+message ComputeTask {
+    string task_id = 1;
+    string task_type = 2;  // "arithmetic", "logic", "neural", etc.
+    bytes payload = 3;
+    map<string, string> parameters = 4;
+}
+
+message ComputeResult {
+    string task_id = 1;
+    bool success = 2;
+    bytes result = 3;
+    uint64 computation_cycles = 4;
+    string error = 5;
+}
