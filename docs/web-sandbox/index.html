@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ternary Computing Sandbox</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔺 Ternary Computing Sandbox</h1>
+            <p class="subtitle">Interactive environment for balanced ternary computing and neural networks</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="logic">Logic Expressions</button>
+            <button class="tab-btn" data-tab="neural">Neural Network</button>
+            <button class="tab-btn" data-tab="encoding">Encoding</button>
+            <button class="tab-btn" data-tab="about">About</button>
+        </nav>
+
+        <!-- Logic Expressions Tab -->
+        <div class="tab-content active" id="logic-tab">
+            <h2>Ternary Logic Expressions</h2>
+            <p>Evaluate balanced ternary logic expressions. Values: -1 (MINUS), 0 (ZERO), +1 (PLUS)</p>
+
+            <div class="card">
+                <h3>Expression Evaluator</h3>
+                <div class="input-group">
+                    <label>Expression:</label>
+                    <input type="text" id="logic-expr" placeholder="e.g., (a AND b) OR (NOT c)" />
+                    <button onclick="evaluateLogic()">Evaluate</button>
+                </div>
+
+                <div class="input-group">
+                    <label>Variables:</label>
+                    <div id="variables-input">
+                        <input type="number" id="var-a" placeholder="a" min="-1" max="1" step="1" value="1" />
+                        <input type="number" id="var-b" placeholder="b" min="-1" max="1" step="1" value="0" />
+                        <input type="number" id="var-c" placeholder="c" min="-1" max="1" step="1" value="-1" />
+                    </div>
+                </div>
+
+                <div id="logic-result" class="result"></div>
+            </div>
+
+            <div class="card">
+                <h3>Truth Tables</h3>
+                <div class="truth-tables">
+                    <div class="truth-table">
+                        <h4>AND (min)</h4>
+                        <table id="and-table"></table>
+                    </div>
+                    <div class="truth-table">
+                        <h4>OR (max)</h4>
+                        <table id="or-table"></table>
+                    </div>
+                    <div class="truth-table">
+                        <h4>NOT (negate)</h4>
+                        <table id="not-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Neural Network Tab -->
+        <div class="tab-content" id="neural-tab">
+            <h2>Ternary Neural Network Builder</h2>
+
+            <div class="card">
+                <h3>Network Architecture</h3>
+                <div class="input-group">
+                    <label>Input Size:</label>
+                    <input type="number" id="input-size" value="784" min="1" />
+                </div>
+
+                <div class="input-group">
+                    <label>Hidden Layers:</label>
+                    <div id="hidden-layers">
+                        <div class="layer-input">
+                            <input type="number" class="layer-neurons" value="128" min="1" placeholder="Neurons" />
+                            <button onclick="removeLayer(this)">Remove</button>
+                        </div>
+                    </div>
+                    <button onclick="addLayer()">+ Add Layer</button>
+                </div>
+
+                <div class="input-group">
+                    <label>Output Size:</label>
+                    <input type="number" id="output-size" value="10" min="1" />
+                </div>
+
+                <div class="input-group">
+                    <label>Learning Rate:</label>
+                    <input type="number" id="learning-rate" value="0.01" step="0.001" min="0.001" />
+                </div>
+
+                <div class="input-group">
+                    <label>Quantization Threshold:</label>
+                    <input type="number" id="threshold" value="0.3" step="0.1" min="0.1" max="1.0" />
+                </div>
+
+                <button onclick="buildNetwork()" class="primary-btn">Build Network</button>
+                <div id="network-info"></div>
+            </div>
+
+            <div class="card">
+                <h3>Dataset</h3>
+                <div class="dataset-options">
+                    <button onclick="loadMNIST()" class="secondary-btn">Load MNIST Sample</button>
+                    <button onclick="document.getElementById('csv-upload').click()" class="secondary-btn">
+                        Upload CSV
+                    </button>
+                    <input type="file" id="csv-upload" accept=".csv" style="display:none" onchange="loadCSV(event)" />
+                    <button onclick="document.getElementById('img-upload').click()" class="secondary-btn">
+                        Upload Images
+                    </button>
+                    <input type="file" id="img-upload" accept="image/*" multiple style="display:none" onchange="loadImages(event)" />
+                </div>
+
+                <div id="dataset-config" style="display:none">
+                    <h4>Dataset Configuration</h4>
+                    <div class="input-group">
+                        <label>Target Column:</label>
+                        <select id="target-column"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Feature Columns:</label>
+                        <div id="feature-columns"></div>
+                    </div>
+                </div>
+
+                <div id="dataset-info"></div>
+            </div>
+
+            <div class="card">
+                <h3>Training</h3>
+                <div class="input-group">
+                    <label>Epochs:</label>
+                    <input type="number" id="epochs" value="10" min="1" max="100" />
+                </div>
+                <div class="input-group">
+                    <label>Batch Size:</label>
+                    <input type="number" id="batch-size" value="32" min="1" max="256" />
+                </div>
+
+                <button onclick="trainNetwork()" class="primary-btn" id="train-btn">Train</button>
+                <button onclick="stopTraining()" class="danger-btn" id="stop-btn" style="display:none">Stop</button>
+
+                <div id="training-progress">
+                    <canvas id="loss-chart" width="600" height="300"></canvas>
+                </div>
+                <div id="training-log"></div>
+            </div>
+
+            <div class="card">
+                <h3>Results</h3>
+                <div id="results"></div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Model Size</h4>
+                        <div id="model-size">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Sparsity</h4>
+                        <div id="sparsity">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Accuracy</h4>
+                        <div id="accuracy">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Compression</h4>
+                        <div id="compression">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Encoding Tab -->
+        <div class="tab-content" id="encoding-tab">
+            <h2>Ternary Encoding Comparison</h2>
+
+            <div class="card">
+                <h3>Encode a Number</h3>
+                <div class="input-group">
+                    <label>Integer Value:</label>
+                    <input type="number" id="encode-value" value="12345" />
+                    <button onclick="encodeValue()">Encode</button>
+                </div>
+
+                <div class="encoding-results">
+                    <div class="encoding-method">
+                        <h4>Compact Encoding (3 bits → 2 trits)</h4>
+                        <div id="compact-result"></div>
+                        <p class="note">⚠️ May lose information (++ saturation)</p>
+                    </div>
+
+                    <div class="encoding-method">
+                        <h4>Perfect Encoding (Radix Conversion)</h4>
+                        <div id="perfect-result"></div>
+                        <p class="note">✓ Zero information loss</p>
+                    </div>
+
+                    <div class="encoding-method">
+                        <h4>Optimal Block (5 trits → 8 bits)</h4>
+                        <div id="optimal-result"></div>
+                        <p class="note">✓ Zero information loss, 94.9% efficient</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Encoding Comparison Table</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Encoder</th>
+                            <th>Bits/Tryte</th>
+                            <th>Bytes/Tryte</th>
+                            <th>Efficiency</th>
+                            <th>Information Loss</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Compact (3→2)</td>
+                            <td>27</td>
+                            <td>~4</td>
+                            <td>94.6%</td>
+                            <td>Yes (++ case)</td>
+                        </tr>
+                        <tr>
+                            <td>Perfect (Radix)</td>
+                            <td>29</td>
+                            <td>4</td>
+                            <td>98.4%</td>
+                            <td><strong>None</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Optimal Block (5→8)</td>
+                            <td>32 + header</td>
+                            <td>6</td>
+                            <td>94.9%</td>
+                            <td><strong>None</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Float32 (reference)</td>
+                            <td>32</td>
+                            <td>4</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- About Tab -->
+        <div class="tab-content" id="about-tab">
+            <h2>About Ternary Computing</h2>
+
+            <div class="card">
+                <h3>Balanced Ternary</h3>
+                <p>
+                    Balanced ternary uses three values: <strong>-1</strong>, <strong>0</strong>, and <strong>+1</strong>.
+                    Unlike binary or standard ternary (0, 1, 2), balanced ternary is symmetric around zero.
+                </p>
+
+                <h4>Advantages:</h4>
+                <ul>
+                    <li>No separate sign bit needed</li>
+                    <li>Trivial negation (flip all signs)</li>
+                    <li>Better information density: ~1.585 bits per trit</li>
+                    <li>Natural three-way logic (true/unknown/false)</li>
+                    <li>Simpler rounding (truncation works correctly)</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Historical Context</h3>
+                <p>
+                    The <strong>Setun</strong> (Сетунь) was a ternary computer built in 1958 at Moscow State University
+                    by Nikolay Brusentsov. It was more cost-effective and energy-efficient than binary computers of its era,
+                    but was discontinued due to standardization pressure.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Modern Applications</h3>
+                <ul>
+                    <li><strong>Neural Networks:</strong> Ternary weights {-1, 0, +1} for compression</li>
+                    <li><strong>Machine Learning:</strong> 50-120x model compression vs float32</li>
+                    <li><strong>Edge AI:</strong> Efficient inference on resource-constrained devices</li>
+                    <li><strong>Fuzzy Logic:</strong> Natural representation of uncertainty</li>
+                    <li><strong>Quantum Computing:</strong> Qutrit simulation</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="https://github.com/v-like-engine/trit-computing-machine" target="_blank">GitHub Repository</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/Setun" target="_blank">Setun on Wikipedia</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/Balanced_ternary" target="_blank">Balanced Ternary on Wikipedia</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Ternary Computing Sandbox | <a href="https://github.com/v-like-engine/trit-computing-machine">GitHub</a></p>
+    </footer>
+
+    <script src="ternary-core.js"></script>
+    <script src="ternary-nn.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
