@@ -13,7 +13,28 @@ Supports:
 import numpy as np
 from typing import Tuple, List, Optional, Callable
 from dataclasses import dataclass
-from ternary.neural import TernaryConfig, ternary_quantize
+
+# Try to import from neural, otherwise define locally
+try:
+    from ternary.neural import TernaryConfig, ternary_quantize
+except ImportError:
+    from dataclasses import dataclass
+
+    @dataclass
+    class TernaryConfig:
+        """Configuration for ternary neural network."""
+        use_ternary_activations: bool = False
+        threshold: float = 0.3
+        learning_rate: float = 0.01
+        batch_size: int = 32
+        epochs: int = 10
+
+    def ternary_quantize(x: np.ndarray, threshold: float = 0.3) -> np.ndarray:
+        """Quantize values to {-1, 0, +1}."""
+        quantized = np.zeros_like(x)
+        quantized[x > threshold] = 1.0
+        quantized[x < -threshold] = -1.0
+        return quantized
 
 
 @dataclass

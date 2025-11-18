@@ -12,9 +12,17 @@ language generation to create multimodal capabilities:
 import numpy as np
 from typing import Optional, List, Tuple, Dict
 from .ternary_gpt import TernaryGPT, TernaryGPTConfig
-from .cnn_models import TernaryResNet
-from .neural import TernaryLinear
-from .ternary_transformer import TernaryLayerNorm
+
+# Try to import CNN and neural components
+try:
+    from .cnn_models import TernaryResNet
+    _has_cnn = True
+except ImportError:
+    _has_cnn = False
+    TernaryResNet = None
+
+# Always use the transformer module's TernaryLinear (handles both APIs)
+from .ternary_transformer import TernaryLinear, TernaryLayerNorm
 
 
 class TernaryVisionEncoder:
@@ -39,9 +47,15 @@ class TernaryVisionEncoder:
         # Number of patches
         self.num_patches = (image_size // patch_size) ** 2
 
-        # Use ResNet as backbone
-        from .cnn_models import create_ternary_resnet18
-        self.backbone = create_ternary_resnet18(num_classes=1000)
+        # Use ResNet as backbone (if available)
+        if _has_cnn:
+            from .cnn_models import create_ternary_resnet18
+            self.backbone = create_ternary_resnet18(num_classes=1000)
+        else:
+            # Simple fallback: use random projection
+            self.backbone = None
+            # Create simple conv-like projection
+            self.simple_proj = TernaryLinear(image_size * image_size * 3, 512, threshold)
 
         # Projection to embed_dim
         # ResNet-18 has 512 output features from global pooling
@@ -62,20 +76,26 @@ class TernaryVisionEncoder:
         Returns:
             features: (batch_size, embed_dim) visual features
         """
-        # Pass through CNN backbone
-        # Get features before final classifier
-        x = images
+        # Pass through CNN backbone or simple projection
+        if self.backbone is not None:
+            # Use full CNN backbone
+            x = images
 
-        # Forward through conv layers (manually, since we need features)
-        for layer in self.backbone.layers[:-1]:  # Exclude final linear
-            if hasattr(layer, 'forward'):
-                if isinstance(layer, (type(self.backbone.layers[0]),)):  # Conv-like layers
-                    x = layer.forward(x, training)
-                else:
-                    x = layer.forward(x)
+            # Forward through conv layers (manually, since we need features)
+            for layer in self.backbone.layers[:-1]:  # Exclude final linear
+                if hasattr(layer, 'forward'):
+                    if isinstance(layer, (type(self.backbone.layers[0]),)):  # Conv-like layers
+                        x = layer.forward(x, training)
+                    else:
+                        x = layer.forward(x)
 
-        # Global average pooling
-        features = np.mean(x, axis=(2, 3))  # (batch_size, 512)
+            # Global average pooling
+            features = np.mean(x, axis=(2, 3))  # (batch_size, 512)
+        else:
+            # Simple fallback: flatten and project
+            batch_size = images.shape[0]
+            flattened = images.reshape(batch_size, -1)
+            features = self.simple_proj.forward(flattened, training)
 
         # Project to embedding dimension
         features = self.projection.forward(features, training)

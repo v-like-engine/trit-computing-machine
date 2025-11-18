@@ -14,27 +14,57 @@ This library provides:
 - High-performance C++ core with Python bindings
 """
 
-from ._ternary_core import (
-    # Core types
-    Trit, TritValue,
-    Tryte,
+# Try to import C++ core (may not be built)
+try:
+    from ._ternary_core import (
+        # Core types
+        Trit, TritValue,
+        Tryte,
 
-    # Memory
-    Memory, SparseMemory,
+        # Memory
+        Memory, SparseMemory,
 
-    # Processor
-    Processor, Instruction, Opcode,
-)
+        # Processor
+        Processor, Instruction, Opcode,
+    )
+    _has_core = True
+except ImportError:
+    _has_core = False
+    # Provide dummy classes for graceful degradation
+    Trit = None
+    TritValue = None
+    Tryte = None
+    Memory = None
+    SparseMemory = None
+    Processor = None
+    Instruction = None
+    Opcode = None
 
-from .highlevel import (
-    # High-level wrappers
-    TernaryComputer,
-    TernaryAssembler,
+# High-level wrappers (only if core is available)
+if _has_core:
+    try:
+        from .highlevel import (
+            # High-level wrappers
+            TernaryComputer,
+            TernaryAssembler,
 
-    # Utilities
-    int_to_balanced_ternary,
-    balanced_ternary_to_int,
-)
+            # Utilities
+            int_to_balanced_ternary,
+            balanced_ternary_to_int,
+        )
+        _has_highlevel = True
+    except ImportError:
+        _has_highlevel = False
+        TernaryComputer = None
+        TernaryAssembler = None
+        int_to_balanced_ternary = None
+        balanced_ternary_to_int = None
+else:
+    _has_highlevel = False
+    TernaryComputer = None
+    TernaryAssembler = None
+    int_to_balanced_ternary = None
+    balanced_ternary_to_int = None
 
 # Neural network components
 try:

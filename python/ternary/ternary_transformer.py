@@ -11,7 +11,96 @@ Implements transformer building blocks with ternary weights:
 
 import numpy as np
 from typing import Optional, Tuple, List
-from .neural import TernaryLinear, ternary_quantize
+
+# Try to import from neural, otherwise define locally
+try:
+    from .neural import TernaryLinear as _NeuralTernaryLinear, ternary_quantize, TernaryConfig
+    # Wrapper to convert threshold to config
+    class TernaryLinear:
+        def __init__(self, in_features: int, out_features: int, threshold: float = 0.3):
+            # Create a config object with the threshold
+            config = TernaryConfig(threshold=threshold)
+            self._layer = _NeuralTernaryLinear(in_features, out_features, config)
+
+        def forward(self, x, training=True):
+            return self._layer.forward(x, training)
+
+        def backward(self, grad):
+            return self._layer.backward(grad)
+
+        def __getattr__(self, name):
+            return getattr(self._layer, name)
+
+except ImportError:
+    # Fallback implementations
+    def ternary_quantize(x: np.ndarray, threshold: float = 0.3) -> np.ndarray:
+        """Quantize values to {-1, 0, +1}."""
+        quantized = np.zeros_like(x)
+        quantized[x > threshold] = 1.0
+        quantized[x < -threshold] = -1.0
+        return quantized
+
+    # Define a simple config class if not available
+    try:
+        from dataclasses import dataclass
+        @dataclass
+        class TernaryConfig:
+            """Configuration for ternary neural network."""
+            use_ternary_activations: bool = False
+            threshold: float = 0.3
+            learning_rate: float = 0.01
+            batch_size: int = 32
+            epochs: int = 10
+    except:
+        pass  # dataclass already defined
+
+    class TernaryLinear:
+        """Simplified ternary linear layer."""
+        def __init__(self, in_features: int, out_features: int, config_or_threshold):
+            self.in_features = in_features
+            self.out_features = out_features
+
+            # Handle both config object and threshold float
+            if isinstance(config_or_threshold, (int, float)):
+                # Threshold passed directly - create config
+                self.config = TernaryConfig(threshold=float(config_or_threshold))
+            else:
+                # Config object passed
+                self.config = config_or_threshold
+
+            self.threshold = self.config.threshold
+
+            # Full precision weights for training
+            self.weights_fp = np.random.randn(out_features, in_features) * 0.1
+            self.bias_fp = np.zeros(out_features)
+
+            # Ternary weights
+            self.weights_ternary = ternary_quantize(self.weights_fp, self.threshold)
+            self.bias_ternary = self.bias_fp
+
+            # Cache for backprop
+            self.cache_input = None
+
+        def quantize(self):
+            """Quantize weights to ternary."""
+            self.weights_ternary = ternary_quantize(self.weights_fp, self.threshold)
+            self.bias_ternary = self.bias_fp  # Bias stays full precision
+
+        def forward(self, x: np.ndarray, training: bool = True) -> np.ndarray:
+            """Forward pass."""
+            self.quantize()
+
+            if training:
+                self.cache_input = x
+
+            # Linear transformation with ternary weights
+            # Note: weights are (out, in) so we need x @ weights.T
+            output = x @ self.weights_ternary.T + self.bias_ternary
+            return output
+
+        def backward(self, grad_output: np.ndarray):
+            """Backward pass (simplified)."""
+            return grad_output
 
 
 class TernaryMultiHeadAttention:

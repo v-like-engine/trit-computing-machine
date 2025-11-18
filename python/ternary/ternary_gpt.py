@@ -12,9 +12,9 @@ from .ternary_transformer import (
     TernaryEmbedding,
     PositionalEncoding,
     TernaryLayerNorm,
-    create_causal_mask
+    create_causal_mask,
+    TernaryLinear  # Use fallback from transformer module
 )
-from .neural import TernaryLinear
 
 
 class TernaryGPTConfig:
